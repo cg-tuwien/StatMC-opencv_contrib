@@ -2,7 +2,7 @@
 
 This repository is a copy of [OpenCV's contrib repository](https://github.com/opencv/opencv_contrib) that includes our implementation of the CUDA denoiser for our research paper ["A Statistical Approach to Monte Carlo Denoising" [Sakai et al. 2024]](https://www.cg.tuwien.ac.at/StatMC).
 We use this denoiser in our [rendering implementation](https://github.com/cg-tuwien/StatMC).
-It is implemented in the [`cudaimgproc` module](modules/cudaimgproc) (in [`modules/cudaimgproc/src/stat_denoise.cpp`](modules/cudaimgproc/src/stat_denoiser.cpp) and [`modules/cudaimgproc/src/cuda/stat_denoiser.cu`](modules/cudaimgproc/src/cuda/stat_denoiser.cu)).
+It is implemented in the [`cudaimgproc` module](modules/cudaimgproc) (in [`modules/cudaimgproc/src/stat_denoiser.cpp`](modules/cudaimgproc/src/stat_denoiser.cpp) and [`modules/cudaimgproc/src/cuda/stat_denoiser.cu`](modules/cudaimgproc/src/cuda/stat_denoiser.cu)).
 
 With the focus on research, this code is not intended for production.
 We appreciate your feedback, questions, and reports of any issues you encounter; feel free to [contact us](https://www.cg.tuwien.ac.at/staff/HiroyukiSakai)!
