@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 2.8)
+project(stat_denoiser_example)
+find_package(OpenCV REQUIRED)
+include_directories(${OpenCV_INCLUDE_DIRS})
+add_executable(stat_denoiser_example main.cpp)
+target_link_libraries(stat_denoiser_example ${OpenCV_LIBS})
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/_download-example-images.sh DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

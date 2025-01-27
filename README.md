@@ -1,60 +1,104 @@
-## Repository for OpenCV's extra modules
+# A Statistical Approach to Monte Carlo Denoising: OpenCV Denoiser
 
-This repository is intended for the development of so-called "extra" modules,
-contributed functionality. New modules quite often do not have stable API,
-and they are not well-tested. Thus, they shouldn't be released as a part of the
-official OpenCV distribution, since the library maintains binary compatibility,
-and tries to provide decent performance and stability.
+This repository is a copy of [OpenCV's contrib repository](https://github.com/opencv/opencv_contrib) that includes our implementation of the CUDA denoiser for our research paper ["A Statistical Approach to Monte Carlo Denoising" [Sakai et al. 2024]](https://www.cg.tuwien.ac.at/StatMC).
+We use this denoiser in our [rendering implementation](https://github.com/cg-tuwien/StatMC).
+It is implemented in the [`cudaimgproc` module](modules/cudaimgproc) (in [`modules/cudaimgproc/src/stat_denoise.cpp`](modules/cudaimgproc/src/stat_denoiser.cpp) and [`modules/cudaimgproc/src/cuda/stat_denoiser.cu`](modules/cudaimgproc/src/cuda/stat_denoiser.cu)).
 
-So, all the new modules should be developed separately, and published in the
-`opencv_contrib` repository at first. Later, when the module matures and gains
-popularity, it is moved to the central OpenCV repository, and the development team
-provides production-quality support for this module.
+With the focus on research, this code is not intended for production.
+We appreciate your feedback, questions, and reports of any issues you encounter; feel free to [contact us](https://www.cg.tuwien.ac.at/staff/HiroyukiSakai)!
 
-### How to build OpenCV with extra modules
 
-You can build OpenCV, so it will include the modules from this repository. Contrib modules are under constant development and it is recommended to use them alongside the master branch or latest releases of OpenCV.
+## Build Instructions
 
-Here is the CMake command for you:
+### Prerequisites
 
-```
-$ cd <opencv_build_directory>
-$ cmake -DOPENCV_EXTRA_MODULES_PATH=<opencv_contrib>/modules <opencv_source_directory>
-$ make -j5
-```
+We developed our denoiser using [CUDA 12.3](https://developer.nvidia.com/cuda-12-3-0-download-archive) and [OpenCV 4.8.1](https://github.com/opencv/opencv/releases/tag/4.8.1).
+Note that [later CUDA versions (>= 12.4) are incompatible with OpenCV 4.8.1](https://github.com/opencv/opencv_contrib/issues/3690).
+We highly recommend using OpenCV 4.8.1 to match the version of this fork.
 
-As the result, OpenCV will be built in the `<opencv_build_directory>` with all
-modules from `opencv_contrib` repository. If you don't want all of the modules,
-use CMake's `BUILD_opencv_*` options. Like in this example:
+For reproducing the results presented in our paper, we recommend using Clang 16.0.6 on Ubuntu 22.04 LTS or Linux Mint 20 (as used for the paper).
+While we have successfully tested GCC 11.4.0, it produces slightly different results.
 
-```
-$ cmake -DOPENCV_EXTRA_MODULES_PATH=<opencv_contrib>/modules -DBUILD_opencv_legacy=OFF <opencv_source_directory>
-```
+### Building OpenCV
 
-If you also want to build the samples from the "samples" folder of each module, also include the "-DBUILD_EXAMPLES=ON" option.
+1.  Navigate to your OpenCV build directory.
 
-If you prefer using the GUI version of CMake (cmake-gui), then, you can add `opencv_contrib` modules within `opencv` core by doing the following:
+2.  Create the CMake buildsystem:
 
-1. Start cmake-gui.
+    ```bash
+    cmake \
+    -DCMAKE_C_COMPILER=clang \
+    -DCMAKE_CXX_COMPILER=clang++ \
+    -DCMAKE_C_STANDARD=17 \
+    -DCMAKE_CXX_STANDARD=17 \
+    -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS} -march=native" \
+    -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -march=native" \
+    -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc \
+    -DCMAKE_CUDA_HOST_COMPILER=/usr/bin/clang++ \
+    -DCMAKE_CUDA_ARCHITECTURES=<cuda_architecture_number> \
+    -DWITH_CUDA=ON \
+    -DWITH_CUBLAS=ON \
+    -DOPENCV_EXTRA_MODULES_PATH=<opencv_contrib>/modules \
+    -DBUILD_LIST=cudaarithm,cudev,cudaimgproc,highgui,ximgproc \
+    -DBUILD_EXAMPLES=ON \
+    <opencv_source_directory>
+    ```
+    Here, `<cuda_architecture_number>` must match the architecture number of your graphics card.
+    For example, for RTX 3080 Ti and A40 GPUs, the number is 86.
+    `<opencv_contrib>` and `<opencv_source_directory>` must point to the directories containing the `opencv_contrib` and `opencv` repositories.
+    Note that we only build the modules required for our denoiser.
+    With the CMake flag `-DMEMFNC=1` it is possible to enable [Moon et al.'s confidence-interval approach [Moon et al. 2013]](https://doi.org/10.1111/cgf.12004) instead of ours.
+    Note that using this flag globally switches to their approach, thereby completely disabling our denoiser.
 
-2. Select the opencv source code folder and the folder where binaries will be built (the 2 upper forms of the interface).
+3.  Build:
+    ```bash
+    make -j 16
+    ```
 
-3. Press the `configure` button. You will see all the opencv build parameters in the central interface.
 
-4. Browse the parameters and look for the form called `OPENCV_EXTRA_MODULES_PATH` (use the search form to focus rapidly on it).
+## Usage
 
-5. Complete this `OPENCV_EXTRA_MODULES_PATH` by the proper pathname to the `<opencv_contrib>/modules` value using its browse button.
+To learn how to use our denoiser, see the simple example provided under [`samples/stat_denoiser/`](samples/stat_denoiser).
+Our denoiser is able to efficiently denoise multiple images at once with a single kernel call, which requires some buffer management and preparation, as can be seen in our example.
 
-6. Press the `configure` button followed by the `generate` button (the first time, you will be asked which makefile style to use).
+### Building the Example
 
-7. Build the `opencv` core with the method you chose (make and make install if you chose Unix makefile at step 6).
+1.  Create a build directory somewhere:
+    ```bash
+    mkdir stat_denoiser
+    cd stat_denoiser/
+    ```
 
-8. To run, linker flags to contrib modules will need to be added to use them in your code/IDE. For example to use the aruco module, "-lopencv_aruco" flag will be added.
+2.  Create the CMake buildsystem:
+    ```bash
+    cmake <opencv_contrib>/samples/stat_denoiser/
+    ```
+    `<opencv_contrib>` must point to the directory containing the `opencv_contrib` repository.
+    You may have to provide the build directory if OpenCV with our denoiser has not been installed on your system:
+    ```bash
+    cmake -DOpenCV_DIR=<opencv_build> <opencv_contrib>/samples/stat_denoiser/
+    ```
+    Here, `<opencv_build>` must be specified absolutely.
 
-### Update the repository documentation
+3.  Download the sample images for testing the denoiser:
+    ```bash
+    ./_download-example-images.sh
+    ```
 
-In order to keep a clean overview containing all contributed modules, the following files need to be created/adapted:
+4.  Build:
+    ```bash
+    make -j 16
+    ```
 
-1. Update the README.md file under the modules folder. Here, you add your model with a single-line description.
+5.  Run the denoiser:
+    ```bash
+    ./stat_denoiser_example
+    ```
 
-2. Add a README.md inside your own module folder. This README explains which functionality (separate functions) is available, links to the corresponding samples, and explains in somewhat more detail what the module is expected to do. If any extra requirements are needed to build the module without problems, add them here also.
+Denoised images are output to `staircase-0-16-film-f.pfm` and `staircase-1-16-film-f`.
+
+
+## Acknowledgments
+
+We thank Lukas Lipp for fruitful discussions, Károly Zsolnai-Fehér and Jaroslav Křivánek for valuable contributions to early versions of this work, and Bernhard Kerbl for help with our CUDA implementation.
+This work has received funding from the Vienna Science and Technology Fund (WWTF) project ICT22-028 ("Toward Optimal Path Guiding for Photorealistic Rendering") and the Austrian Science Fund (FWF) project F 77 (SFB "Advanced Computational Design").

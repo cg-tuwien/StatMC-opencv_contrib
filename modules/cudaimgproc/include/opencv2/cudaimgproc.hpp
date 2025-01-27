@@ -40,6 +40,16 @@
 //
 //M*/
 
+/*
+    This file contains modifications to the original OpenCV source code for the
+    paper "A Statistical Approach to Monte Carlo Denoising"
+    (https://www.cg.tuwien.ac.at/StatMC).
+    
+    Copyright © 2024-2025 Hiroyuki Sakai for the modifications.
+    Original copyright and license (refer to the top of the file) remain
+    unaffected.
+ */
+
 #ifndef OPENCV_CUDAIMGPROC_HPP
 #define OPENCV_CUDAIMGPROC_HPP
 
@@ -719,6 +729,74 @@ BORDER_REPLICATE , BORDER_CONSTANT , BORDER_REFLECT and BORDER_WRAP are supporte
  */
 CV_EXPORTS_W void bilateralFilter(InputArray src, OutputArray dst, int kernel_size, float sigma_color, float sigma_spatial,
                                 int borderMode = BORDER_DEFAULT, Stream& stream = Stream::Null());
+
+//////////////////////// Statistical Denoiser /////////////////////////
+// © 2024-2025 Hiroyuki Sakai
+
+namespace stat_denoiser {
+    CV_EXPORTS_W void setup();
+
+    CV_EXPORTS_W void synchronize(
+        Stream& stream = Stream::Null()
+    );
+
+    template <typename T>
+    CV_EXPORTS_W void calculateMeanVars(
+        const unsigned short ptrCount,
+        const unsigned short width,
+        const unsigned short height,
+        const PtrStepSzb &nPtrs,
+        const PtrStepSzb &m2Ptrs,
+        PtrStepSzb meanVarPtrs,
+        Stream &stream = Stream::Null()
+    );
+
+    template <typename T>
+    CV_EXPORTS_W void filter(
+        const unsigned short ptrCount,
+        const unsigned short width,
+        const unsigned short height,
+        const float dSFactor,
+        const unsigned char radius,
+        const bool denoiseFilm,
+        const PtrStepSzb &nPtrs,
+        const PtrStepSzb &meanPtrs,
+        const PtrStepSzb &m2Ptrs,
+        const PtrStepSzb &m3Ptrs,
+        const PtrStepSzb &filmPtrs,
+        const PtrStepSzb &film,
+        const PtrStepSzb &gBufferPtrs,
+        const PtrStepSzb &gBufferChannelCounts,
+        const PtrStepSzb &gBufferDRFactors,
+        const unsigned char nGBufs,
+        PtrStepSzb meanCorrPtrs,
+        PtrStepSzb discriminatorPtrs,
+        PtrStepSzb filmFilteredPtrs,
+        PtrStepSzb filmFiltered,
+        Stream &stream = Stream::Null()
+    );
+    template <typename T>
+    CV_EXPORTS_W void filter(
+        const unsigned short ptrCount,
+        const unsigned short width,
+        const unsigned short height,
+        const float dSFactor,
+        const unsigned char radius,
+        const PtrStepSzb &nPtrs,
+        const PtrStepSzb &meanPtrs,
+        const PtrStepSzb &m2Ptrs,
+        const PtrStepSzb &m3Ptrs,
+        const PtrStepSzb &filmPtrs,
+        const PtrStepSzb &gBufferPtrs,
+        const PtrStepSzb &gBufferChannelCounts,
+        const PtrStepSzb &gBufferDRFactors,
+        const unsigned char nGBufs,
+        PtrStepSzb meanCorrPtrs,
+        PtrStepSzb discriminatorPtrs,
+        PtrStepSzb filmFilteredPtrs,
+        Stream &stream = Stream::Null()
+    );
+} // namespace stat_denoiser {
 
 ///////////////////////////// Blending ////////////////////////////////
 
