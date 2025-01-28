@@ -14,7 +14,7 @@ We appreciate your feedback, questions, and reports of any issues you encounter;
 
 We developed our denoiser using [CUDA 12.3](https://developer.nvidia.com/cuda-12-3-0-download-archive) and [OpenCV 4.8.1](https://github.com/opencv/opencv/releases/tag/4.8.1).
 Note that [later CUDA versions (>= 12.4) are incompatible with OpenCV 4.8.1](https://github.com/opencv/opencv_contrib/issues/3690).
-We highly recommend using OpenCV 4.8.1 to match the version of this fork.
+We highly recommend using OpenCV 4.8.1 to match the version of this repository.
 
 For reproducing the results presented in our paper, we recommend using Clang 16.0.6 on Ubuntu 22.04 LTS or Linux Mint 20 (as used for the paper).
 While we have successfully tested GCC 11.4.0, it produces slightly different results.
@@ -40,7 +40,6 @@ While we have successfully tested GCC 11.4.0, it produces slightly different res
     -DWITH_CUBLAS=ON \
     -DOPENCV_EXTRA_MODULES_PATH=<opencv_contrib>/modules \
     -DBUILD_LIST=cudaarithm,cudev,cudaimgproc,highgui,ximgproc \
-    -DBUILD_EXAMPLES=ON \
     <opencv_source_directory>
     ```
     Here, `<cuda_architecture_number>` must match the architecture number of your graphics card.
