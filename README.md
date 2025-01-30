@@ -48,8 +48,8 @@ While we have successfully tested GCC 11.4.0, it produces slightly different res
     Note that we only build the modules required for our denoiser.
     With the CMake flag `-DMEMFNC=1` it is possible to enable [Moon et al.'s confidence-interval approach [Moon et al. 2013]](https://doi.org/10.1111/cgf.12004) instead of ours.
     Note that using this flag globally switches to their approach, thereby completely disabling our denoiser.
-    To reproduce the results reported in our paper for their approach, it is necessary to change the significance level to 0.002 (from 0.005); this is done by assigning `&t_002_quantiles[0]` to `*t_quantiles` (and uncommenting the corresponding line right above) [here](modules/cudaimgproc/src/cuda/stat_denoiser.cu#L67)
-    Furthermore, Box-Cox transformation must be disabled by setting [this flag](https://github.com/HiroyukiSakai/StatMC/blob/master/src/statistics/statpath.cpp#L1043) to `false`.
+    To reproduce the results reported in our paper for their approach, it is necessary to change the significance level to 0.002 (from 0.005); this is done by assigning `&t_002_quantiles[0]` to `*t_quantiles` (and uncommenting the corresponding line right above) [here](modules/cudaimgproc/src/cuda/stat_denoiser.cu#L67).
+    Furthermore, Box-Cox transformation must be disabled by setting [this flag](https://github.com/cg-tuwien/StatMC/blob/master/src/statistics/statpath.cpp#L1043) to `false`.
 
 3.  Build:
     ```bash
